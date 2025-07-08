@@ -1,18 +1,32 @@
 #include <stdio.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <boost/asio.hpp>
 
 int main()
-{
-        cv::VideoCapture cap(0);
-        cv::Mat frame;
+{       
+	// init buffer for encoded frame
+	std::vector<uchar> buf;
 
-        cap >> frame;
+	// init for openCV
+	cv::VideoCapture cap(0); 
 
-        cv::imwrite("captured_image.jpg", frame);
+	// init for tcp stream
+	boost::asio::io_context io;
+	tcp::acceptor acceptor(io, tcp::endpoint(tcp::v4(), 9000));
+	tcp::socket socket(io);
+	acceptor.accept(socket);	
 
-        cap.release();
+	while(true){
+		cv::Mat frame;
+		cap >> frame; // put current frame in memory
 
-        std::cout << "hello";
-        return 0;
+		cv::imencode(".jpg", frame, buf); // encode frame to send
+		uint32_t len = htonl(buf.size()); // get length of encoded frame
+		
+		boost::asio::write(socket, boost::asio::buffer(&len, 4)); //send 4-byte length header
+		boost::asio::write(socket, boost::asio::buffer(buf)); // send JPEG bytes
+		std::this_thread::sleep_for(std::chrono::milliseconds(250)); // wait 4 seconds
+    }
+
 }
