@@ -5,7 +5,7 @@
 
 int main()
 {       
-	// init buffer for encoded frame
+	// create buffer for encoded frame
 	std::vector<uchar> buf;
 
 	// init for openCV
@@ -26,7 +26,7 @@ int main()
 		
 		boost::asio::write(socket, boost::asio::buffer(&len, 4)); //send 4-byte length header
 		boost::asio::write(socket, boost::asio::buffer(buf)); // send JPEG bytes
-		std::this_thread::sleep_for(std::chrono::milliseconds(250)); // wait 4 seconds
+		std::this_thread::sleep_for(std::chrono::milliseconds(250)); // wait 1/4 seconds
     }
 
 }
